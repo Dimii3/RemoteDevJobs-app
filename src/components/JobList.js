@@ -62,6 +62,8 @@ const clickHandler = async (e) => {
 
   const id = jobItemEl.children[0].getAttribute("href");
 
+  history.pushState(null, "", `/#${id}`);
+
   try {
     const data = await getData(`${BASE_URL_API}/jobs/${id}`);
     spinnerJobDetailsEl.classList.remove("spinner--visible");
