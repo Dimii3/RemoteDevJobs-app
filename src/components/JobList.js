@@ -3,12 +3,15 @@ import {
   jobListSearchEl,
   spinnerJobDetailsEl,
   BASE_URL_API,
+  getData,
+  state,
 } from "../common.js";
 import renderJobDetails from "./JobDetails.js";
 import renderSpinner from "./Spinner.js";
 
-const renderJobList = (jobItems) => {
-  jobItems.slice(0, 7).forEach((jobItem) => {
+const renderJobList = () => {
+  jobListSearchEl.innerHTML = "";
+  state.searchJobItems.slice(0, 7).forEach((jobItem) => {
     const newJobItemHTML = `<li class="job-item">
         <a class="job-item__link" href="${jobItem.id}">
             <div class="job-item__badge">${jobItem.badgeLetters}</div>
@@ -23,7 +26,7 @@ const renderJobList = (jobItems) => {
             </div>
             <div class="job-item__right">
                 <i class="fa-solid fa-bookmark job-item__bookmark-icon"></i>
-                <time class="job-item__time">Thu</time>
+                <time class="job-item__time">${jobItem.daysAgo}d.</time>
             </div>
         </a>
     </li>`;
@@ -31,7 +34,7 @@ const renderJobList = (jobItems) => {
   });
 };
 
-const clickHandler = (e) => {
+const clickHandler = async (e) => {
   e.preventDefault();
   const clickedEl = e.target;
   const jobItemEl = clickedEl.closest(".job-item");
@@ -52,19 +55,34 @@ const clickHandler = (e) => {
 
   const id = jobItemEl.children[0].getAttribute("href");
 
-  fetch(`${BASE_URL_API}/jobs/${id}`)
-    .then((res) => {
-      if (!res.ok) {
-        return;
-      }
-      return res.json();
-    })
-    .then((data) => {
-      spinnerJobDetailsEl.classList.remove("spinner--visible");
-      const { jobItem } = data;
-      renderJobDetails(jobItem);
-    })
-    .catch((err) => console.log(err));
+  try {
+    const data = await getData(`${BASE_URL_API}/jobs/${id}`);
+    spinnerJobDetailsEl.classList.remove("spinner--visible");
+    const { jobItem } = data;
+    renderJobDetails(jobItem);
+  } catch (err) {
+    spinnerJobDetailsEl.classList.remove("spinner--visible");
+    renderError(err.message);
+  }
+
+  //   fetch(`${BASE_URL_API}/jobs/${id}`)
+  //     .then((res) => {
+  //       if (!res.ok) {
+  //         throw new Error(
+  //           "Resource issue (e.g. resource doesn't exist) or server issue"
+  //         );
+  //       }
+  //       return res.json();
+  //     })
+  //     .then((data) => {
+  //       spinnerJobDetailsEl.classList.remove("spinner--visible");
+  //       const { jobItem } = data;
+  //       renderJobDetails(jobItem);
+  //     })
+  //     .catch((err) => {
+  //       spinnerJobDetailsEl.classList.remove("spinner--visible");
+  //       renderError(err.message);
+  //     });
 };
 jobListSearchEl.addEventListener("click", clickHandler);
 

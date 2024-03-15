@@ -5,12 +5,14 @@ import {
   jobListSearchEl,
   numberEl,
   BASE_URL_API,
+  getData,
+  state,
 } from "../common.js";
 import renderError from "./Error.js";
 import renderSpinner from "./Spinner.js";
 import renderJobList from "./JobList.js";
 
-const submitHandler = (e) => {
+const submitHandler = async (e) => {
   e.preventDefault();
   const searchText = searchInputEl.value;
 
@@ -26,21 +28,18 @@ const submitHandler = (e) => {
   jobListSearchEl.innerHTML = "";
   renderSpinner("search");
 
-  fetch(`${BASE_URL_API}/jobs?search=${searchText}`)
-    .then((res) => {
-      if (!res.ok) {
-        console.error("Something went wrong");
-        return;
-      }
-      return res.json();
-    })
-    .then((data) => {
-      spinnerSearchEl.classList.remove("spinner--visible");
-      const { jobItems } = data;
-      numberEl.textContent = jobItems.length;
-      renderJobList(jobItems);
-    })
-    .catch((err) => console.log(err));
+  try {
+    const data = await getData(`${BASE_URL_API}/jobs?search=${searchText}`);
+    const { jobItems } = data;
+    state.searchJobItems = jobItems;
+
+    spinnerSearchEl.classList.remove("spinner--visible");
+    numberEl.textContent = jobItems.length;
+    renderJobList();
+  } catch (err) {
+    spinnerSearchEl.classList.remove("spinner--visible");
+    renderError(err.message);
+  }
 };
 
 searchFormEl.addEventListener("submit", submitHandler);
