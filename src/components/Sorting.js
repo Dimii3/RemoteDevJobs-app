@@ -5,11 +5,15 @@ import {
   state,
 } from "../common.js";
 import renderJobList from "./JobList.js";
+import renderPaginationsButtons from "./Pagination.js";
 
 const clickHandler = (event) => {
   const clickedEl = event.target.closest(".sorting__button");
 
   if (!clickedEl) return;
+
+  state.currentPage = 1;
+  renderPaginationsButtons();
 
   const recent = clickedEl.className.includes("--recent") ? true : false;
   if (recent) {

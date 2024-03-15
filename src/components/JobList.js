@@ -5,14 +5,21 @@ import {
   BASE_URL_API,
   getData,
   state,
+  paginationBtnBackEl,
+  RESULTS_PER_PAGE,
 } from "../common.js";
 import renderJobDetails from "./JobDetails.js";
 import renderSpinner from "./Spinner.js";
 
 const renderJobList = () => {
   jobListSearchEl.innerHTML = "";
-  state.searchJobItems.slice(0, 7).forEach((jobItem) => {
-    const newJobItemHTML = `<li class="job-item">
+  state.searchJobItems
+    .slice(
+      state.currentPage * RESULTS_PER_PAGE - RESULTS_PER_PAGE,
+      state.currentPage * RESULTS_PER_PAGE
+    )
+    .forEach((jobItem) => {
+      const newJobItemHTML = `<li class="job-item">
         <a class="job-item__link" href="${jobItem.id}">
             <div class="job-item__badge">${jobItem.badgeLetters}</div>
             <div class="job-item__middle">
@@ -30,8 +37,8 @@ const renderJobList = () => {
             </div>
         </a>
     </li>`;
-    jobListSearchEl.insertAdjacentHTML("beforeend", newJobItemHTML);
-  });
+      jobListSearchEl.insertAdjacentHTML("beforeend", newJobItemHTML);
+    });
 };
 
 const clickHandler = async (e) => {
