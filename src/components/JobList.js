@@ -7,21 +7,28 @@ import {
   state,
   paginationBtnBackEl,
   RESULTS_PER_PAGE,
+  jobListBookmarksEl,
 } from "../common.js";
 import renderJobDetails from "./JobDetails.js";
 import renderSpinner from "./Spinner.js";
 
-const renderJobList = () => {
-  jobListSearchEl.innerHTML = "";
-  state.searchJobItems
-    .slice(
+const renderJobList = (whichJobList = "search") => {
+  const jobListEl =
+    whichJobList === "search" ? jobListSearchEl : jobListBookmarksEl;
+  let jobItems;
+  if (whichJobList === "search") {
+    jobItems = state.searchJobItems.slice(
       state.currentPage * RESULTS_PER_PAGE - RESULTS_PER_PAGE,
       state.currentPage * RESULTS_PER_PAGE
-    )
-    .forEach((jobItem) => {
-      const newJobItemHTML = `<li class="job-item ${
-        state.activeJobItem.id === jobItem.id ? "job-item--active" : ""
-      }">
+    );
+  } else if (whichJobList === "bookmarks") {
+    jobItems = state.bookmarkJobItems;
+  }
+  jobListEl.innerHTML = "";
+  jobItems.forEach((jobItem) => {
+    const newJobItemHTML = `<li class="job-item ${
+      state.activeJobItem.id === jobItem.id ? "job-item--active" : ""
+    }">
         <a class="job-item__link" href="${jobItem.id}">
             <div class="job-item__badge">${jobItem.badgeLetters}</div>
             <div class="job-item__middle">
@@ -40,13 +47,19 @@ const renderJobList = () => {
                 </div>
             </div>
             <div class="job-item__right">
-                <i class="fa-solid fa-bookmark job-item__bookmark-icon"></i>
+                <i class="fa-solid fa-bookmark job-item__bookmark-icon ${
+                  state.bookmarkJobItems.some((item) => item.id === jobItem.id)
+                    ? "job-item__bookmark-icon--bookmarked"
+                    : ""
+                }"></i>
                 <time class="job-item__time">${jobItem.daysAgo}d.</time>
             </div>
         </a>
     </li>`;
-      jobListSearchEl.insertAdjacentHTML("beforeend", newJobItemHTML);
-    });
+    jobListEl.insertAdjacentHTML("beforeend", newJobItemHTML);
+  });
+
+  console.log("Job list rendered");
 };
 
 const clickHandler = async (e) => {
@@ -60,18 +73,19 @@ const clickHandler = async (e) => {
   //     .classList.remove("job-item--active");
 
   document
-    .querySelector(".job-item--active")
-    ?.classList.remove("job-item--active");
+    .querySelectorAll(".job-item--active")
+    .forEach((itemWithActiveClass) => {
+      itemWithActiveClass.classList.remove("job-item--active");
+    });
 
   jobItemEl.classList.add("job-item--active");
   jobDetailsContentEl.innerHTML = "";
 
   renderSpinner("joblist");
-
   const id = jobItemEl.children[0].getAttribute("href");
-  state.activeJobItem = state.searchJobItems.find(
-    (jobItem) => jobItem.id === +id
-  );
+  const allJobItems = [...state.searchJobItems, ...state.bookmarkJobItems];
+  state.activeJobItem = allJobItems.find((jobItem) => jobItem.id === +id);
+  renderJobList();
 
   history.pushState(null, "", `/#${id}`);
 
@@ -105,5 +119,5 @@ const clickHandler = async (e) => {
   //     });
 };
 jobListSearchEl.addEventListener("click", clickHandler);
-
+jobListBookmarksEl.addEventListener("click", clickHandler);
 export default renderJobList;
