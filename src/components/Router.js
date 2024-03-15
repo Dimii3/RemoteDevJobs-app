@@ -3,6 +3,7 @@ import {
   getData,
   spinnerJobDetailsEl,
   BASE_URL_API,
+  state,
 } from "../common.js";
 import renderJobDetails from "./JobDetails.js";
 import renderSpinner from "./Spinner.js";
@@ -17,6 +18,7 @@ const loadHandler = async () => {
       const data = await getData(`${BASE_URL_API}/jobs/${id}`);
       spinnerJobDetailsEl.classList.remove("spinner--visible");
       const { jobItem } = data;
+      state.activeJobItem = jobItem;
       renderJobDetails(jobItem);
     } catch (err) {
       spinnerJobDetailsEl.classList.remove("spinner--visible");
